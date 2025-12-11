@@ -405,7 +405,9 @@ def init_session():
         'current_question': 1,
         'answers': {},
         'shuffled_answers': {},
-        'show_summary': False
+        'show_summary': False,
+        'quiz_started': False,
+        'intro_step': 1
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -450,6 +452,11 @@ def main():
     
     # スコア計算
     correct_count, answered_count = calc_score()
+    
+    # イントロページを表示（クイズ開始前）
+    if not st.session_state.quiz_started:
+        show_intro_page()
+        return
     
     # 総括ページを表示
     if st.session_state.show_summary:
@@ -652,6 +659,166 @@ def main():
                 if st.button(f"【{key}】 {value}", key=f"opt_{key}", use_container_width=True):
                     st.session_state.answers[current] = key
                     st.rerun()
+
+
+def show_intro_page():
+    """イントロページ - 3ページ構成"""
+    
+    step = st.session_state.intro_step
+    
+    # ページ1: タイトル＆コピー
+    if step == 1:
+        st.markdown("""
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 60vh; text-align: center;">
+            <div style="font-size: 5rem; margin-bottom: 1.5rem;">🎓</div>
+            <div style="font-size: 2.5rem; font-weight: 800; color: #111827; margin-bottom: 1rem; letter-spacing: -1px;">
+                プロフェッショナリズム研修
+            </div>
+            <div style="font-size: 1.2rem; color: #6b7280; font-weight: 400; margin-bottom: 3rem;">
+                イベント現場で信頼されるスタッフになるために
+            </div>
+            <div style="font-size: 0.9rem; color: #9ca3af;">
+                ▼ 次へ進む
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("次へ ➡", type="primary", use_container_width=True):
+            st.session_state.intro_step = 2
+            st.rerun()
+    
+    # ページ2: 本クイズに取り組む前に～このクイズで学ぶこと
+    elif step == 2:
+        st.markdown("""
+        <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; color: #4f46e5; margin-bottom: 1.5rem;">
+            STEP 2 / 3
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # メインメッセージ
+        st.markdown("""
+        <div style="margin-bottom: 2rem;">
+            <div style="font-size: 1.3rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">
+                📋 本クイズに取り組む前に
+            </div>
+            <div style="font-size: 1rem; color: #374151; line-height: 2;">
+                この研修クイズでは、学習の便宜上、各設問に対して「正解」と「不正解」を明確に設定しています。
+            </div>
+            <div style="font-size: 1rem; color: #374151; line-height: 2; margin-top: 1rem;">
+                しかし、実際のイベント運営や配信の現場において、<strong style="color: #4f46e5;">いついかなる時も通用する「唯一絶対の正解」</strong>は存在しません。
+            </div>
+            <div style="font-size: 1rem; color: #374151; line-height: 2; margin-top: 1rem;">
+                時と場合（TPO）、クライアントの意向、現場の空気感、そして突発的なトラブルの状況によっては、教科書的な「正解」が、その場では「不正解」になることもあります。
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 例
+        st.markdown("""
+        <div style="font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">例えば：</div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="background: #ecfdf5; padding: 1.25rem; border-radius: 10px; border-left: 4px solid #22c55e; margin-bottom: 1rem;">
+            <div style="font-size: 0.95rem; color: #374151; line-height: 1.8;">
+                基本ルールでは「NG」とされていても、<strong>緊急時に人命や安全を守るために必要な行動</strong>であれば、それは許容されます。
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="background: #eef2ff; padding: 1.25rem; border-radius: 10px; border-left: 4px solid #4f46e5; margin-bottom: 2rem;">
+            <div style="font-size: 0.95rem; color: #374151; line-height: 1.8;">
+                効率的な「正解」を選ぶよりも、あえて非効率でも<strong>丁寧なコミュニケーション</strong>をとることが、その場の信頼を守ることもあります。
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # このクイズで学ぶこと
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #FFFFFF; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+            <div style="font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 1rem;">💡 このクイズで学ぶこと</div>
+            <div style="font-size: 1.1rem; font-weight: 400; line-height: 1.8; color: #FFFFFF;">
+                単なるルールの丸暗記ではありません。<br>
+                <strong style="font-weight: 700;">「なぜ、その判断がプロとして推奨されるのか？」</strong><br>
+                という背景にある判断基準（プリンシプル）を理解してください。
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # ナビゲーション
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅ 戻る", use_container_width=True):
+                st.session_state.intro_step = 1
+                st.rerun()
+        with col2:
+            if st.button("次へ ➡", type="primary", use_container_width=True):
+                st.session_state.intro_step = 3
+                st.rerun()
+    
+    # ページ3: 学習のステップ
+    elif step == 3:
+        st.markdown("""
+        <div style="font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; color: #4f46e5; margin-bottom: 1.5rem;">
+            STEP 3 / 3
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="font-size: 1.3rem; font-weight: 700; color: #111827; margin-bottom: 2rem;">
+            📚 学習のステップ
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # ステップ1
+        st.markdown("""
+        <div style="display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 2rem; padding: 1.5rem; background: #f9fafb; border-radius: 12px;">
+            <div style="font-size: 3rem; font-weight: 900; color: #4f46e5; line-height: 1;">01</div>
+            <div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">「型」を知る</div>
+                <div style="font-size: 0.95rem; color: #6b7280; line-height: 1.7;">
+                    まずは業界のスタンダードな基準（セオリー）をこのクイズで学んでください。
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # ステップ2
+        st.markdown("""
+        <div style="display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 2rem; padding: 1.5rem; background: #f9fafb; border-radius: 12px;">
+            <div style="font-size: 3rem; font-weight: 900; color: #4f46e5; line-height: 1;">02</div>
+            <div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">「型」を破る</div>
+                <div style="font-size: 0.95rem; color: #6b7280; line-height: 1.7;">
+                    実際の現場では、セオリーを理解した上で、状況に応じて柔軟に崩せる応用力が求められます。
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 注意書き
+        st.markdown("""
+        <div style="text-align: center; padding: 1.5rem; background: #fef2f2; border-radius: 10px; margin-bottom: 2rem;">
+            <div style="font-size: 0.95rem; color: #991b1b; line-height: 1.7;">
+                ⚠️ スコアを競うことだけが目的ではありません。<br>
+                解説を読み込み、現場で<strong>「信頼されるスタッフ」</strong>として動くための<br>
+                シミュレーションとして活用してください。
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # ナビゲーション
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅ 戻る", use_container_width=True):
+                st.session_state.intro_step = 2
+                st.rerun()
+        with col2:
+            if st.button("🚀 クイズを開始する", type="primary", use_container_width=True):
+                st.session_state.quiz_started = True
+                st.rerun()
+
 
 
 def show_summary_page(correct_count, total_answered, total_questions):
